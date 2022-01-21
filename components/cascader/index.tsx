@@ -10,14 +10,14 @@ import type {
 } from 'rc-cascader';
 import omit from 'rc-util/lib/omit';
 import RightOutlined from '@ant-design/icons/RightOutlined';
-import RedoOutlined from '@ant-design/icons/RedoOutlined';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import LeftOutlined from '@ant-design/icons/LeftOutlined';
 import devWarning from '../_util/devWarning';
 import { ConfigContext } from '../config-provider';
 import type { SizeType } from '../config-provider/SizeContext';
 import SizeContext from '../config-provider/SizeContext';
 import getIcons from '../select/utils/iconUtil';
-import { getTransitionName } from '../_util/motion';
+import { getTransitionName, getTransitionDirection, SelectCommonPlacement } from '../_util/motion';
 
 // Align the design since we use `rc-select` in root. This help:
 // - List search content will show all content
@@ -85,7 +85,7 @@ export interface CascaderProps<DataNodeType>
   multiple?: boolean;
   size?: SizeType;
   bordered?: boolean;
-
+  placement?: SelectCommonPlacement;
   suffixIcon?: React.ReactNode;
   options?: DataNodeType[];
 }
@@ -107,6 +107,7 @@ const Cascader = React.forwardRef((props: CascaderProps<any>, ref: React.Ref<Cas
     popupClassName,
     dropdownClassName,
     expandIcon,
+    placement,
     showSearch,
     allowClear = true,
     notFoundContent,
@@ -193,7 +194,7 @@ const Cascader = React.forwardRef((props: CascaderProps<any>, ref: React.Ref<Cas
 
   const loadingIcon = (
     <span className={`${prefixCls}-menu-item-loading-icon`}>
-      <RedoOutlined spin />
+      <LoadingOutlined spin />
     </span>
   );
 
@@ -209,6 +210,16 @@ const Cascader = React.forwardRef((props: CascaderProps<any>, ref: React.Ref<Cas
     multiple,
     prefixCls,
   });
+
+  // ===================== Placement =====================
+  const getPlacement = () => {
+    if (placement !== undefined) {
+      return placement;
+    }
+    return direction === 'rtl'
+      ? ('bottomRight' as SelectCommonPlacement)
+      : ('bottomLeft' as SelectCommonPlacement);
+  };
 
   // ==================== Render =====================
   return (
@@ -226,6 +237,7 @@ const Cascader = React.forwardRef((props: CascaderProps<any>, ref: React.Ref<Cas
       )}
       {...(restProps as any)}
       direction={mergedDirection}
+      placement={getPlacement()}
       notFoundContent={mergedNotFoundContent}
       allowClear={allowClear}
       showSearch={mergedShowSearch}
@@ -238,7 +250,11 @@ const Cascader = React.forwardRef((props: CascaderProps<any>, ref: React.Ref<Cas
       dropdownClassName={mergedDropdownClassName}
       dropdownPrefixCls={customizePrefixCls || cascaderPrefixCls}
       choiceTransitionName={getTransitionName(rootPrefixCls, '', choiceTransitionName)}
-      transitionName={getTransitionName(rootPrefixCls, 'slide-up', transitionName)}
+      transitionName={getTransitionName(
+        rootPrefixCls,
+        getTransitionDirection(placement),
+        transitionName,
+      )}
       getPopupContainer={getPopupContainer || getContextPopupContainer}
       ref={ref}
     />
